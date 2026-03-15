@@ -1,5 +1,4 @@
 services:
-
   api-gateway:
     build: ./services/api-gateway
     container_name: api-gateway
@@ -62,9 +61,25 @@ services:
     networks:
       - platform-network
 
+  minio:
+    image: minio/minio
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - platform-network
+
 networks:
   platform-network:
     driver: bridge
 
 volumes:
   pgdata:
+  minio-data:

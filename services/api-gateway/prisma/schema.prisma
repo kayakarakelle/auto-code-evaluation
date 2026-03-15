@@ -1,0 +1,131 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+ 
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role{
+  student
+  instructor
+  admin
+}
+
+enum Language{
+  python
+  javascript
+  java
+  cpp
+}
+
+enum SubmissionStatus{
+  pending 
+  running
+  completed
+  error
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  name         String
+  role         Role     @default(student)
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  taughtCourses   Course[]     @relation("InstructorCourses")
+  submissions     Submission[]
+  enrollments     Enrollment[]
+}
+
+model Course {
+  id           String   @id @default(uuid())
+  title        String
+  semester     String
+  language     Language
+  createdAt    DateTime @default(now())
+
+  instructor   User         @relation("InstructorCourses", fields: [instructorId], references: [id])
+  instructorId String
+
+  assignments  Assignment[]
+  enrollments  Enrollment[]
+}
+
+model Enrollment {
+  id         String   @id @default(uuid())
+  enrolledAt DateTime @default(now())
+
+  student    User   @relation(fields: [studentId], references: [id])
+  studentId  String
+
+  course     Course @relation(fields: [courseId], references: [id])
+  courseId   String
+
+  @@unique([studentId, courseId])
+}
+
+model Assignment {
+  id                String   @id @default(uuid())
+  title             String
+  description       String?
+  referenceSolution String?
+  testCases         Json
+  dueDate           DateTime?
+  maxScore          Int      @default(100)
+  weightCorrectness Float    @default(0.4)
+  weightQuality     Float    @default(0.3)
+  weightEfficiency  Float    @default(0.2)
+  weightStyle       Float    @default(0.1)
+  createdAt         DateTime @default(now())
+
+  course   Course @relation(fields: [courseId], references: [id])
+  courseId String
+
+  submissions Submission[]
+}
+
+model Submission {
+  id           String           @id @default(uuid())
+  code         String
+  filePath     String?
+  status       SubmissionStatus @default(pending)
+  submittedAt  DateTime         @default(now())
+
+  student      User       @relation(fields: [studentId], references: [id])
+  studentId    String
+
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  assignmentId String
+
+  result       EvaluationResult?
+}
+
+model EvaluationResult {
+  id                String   @id @default(uuid())
+  totalScore        Float?
+  correctnessScore  Float?
+  qualityScore      Float?
+  efficiencyScore   Float?
+  styleScore        Float?
+  semanticSimilarity Float?
+  plagiarismScore   Float?
+  feedbackText      String?
+  executionTimeMs   Int?
+  memoryUsageKb     Int?
+  testResults       Json?
+  astMetrics        Json?
+  evaluatedAt       DateTime @default(now())
+
+  submission   Submission @relation(fields: [submissionId], references: [id])
+  submissionId String     @unique
+}
+
