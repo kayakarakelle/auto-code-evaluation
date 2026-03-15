@@ -1,0 +1,70 @@
+services:
+
+  api-gateway:
+    build: ./services/api-gateway
+    container_name: api-gateway
+    ports:
+      - "3000:3000"
+    networks:
+      - platform-network
+
+  execution-service:
+    build: ./services/execution-service
+    container_name: execution-service
+    ports:
+      - "3001:3001"
+    networks:
+      - platform-network
+
+  analysis-service:
+    build: ./services/analysis-service
+    container_name: analysis-service
+    ports:
+      - "8001:8001"
+    networks:
+      - platform-network
+
+  ai-service:
+    build: ./services/ai-service
+    container_name: ai-service
+    ports:
+      - "8002:8002"
+    networks:
+      - platform-network
+
+  plagiarism-service:
+    build: ./services/plagiarism-service
+    container_name: plagiarism-service
+    ports:
+      - "8003:8003"
+    networks:
+      - platform-network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    environment:
+      POSTGRES_DB: kodplatform
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - platform-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - platform-network
+
+networks:
+  platform-network:
+    driver: bridge
+
+volumes:
+  pgdata:
